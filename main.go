@@ -20,9 +20,8 @@ func headers(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
-	http.HandleFunc("/hello", hello)
-	http.HandleFunc("/headers", headers)
-
-	http.ListenAndServe(":8080", nil)
+	server := NewHttpServer("server")
+	server.Route("/hello", hello)
+	server.Route("/headers", headers)
+	server.Start(":8080")
 }
