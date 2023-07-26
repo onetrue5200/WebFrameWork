@@ -14,27 +14,38 @@ func body(c *Context) {
 	data := &Req{}
 	err := c.ReadJson(data)
 	if err != nil {
-		c.WriteJson(http.StatusBadRequest, nil)
+		if err = c.WriteJson(http.StatusBadRequest, nil); err != nil {
+			panic(err)
+		}
 	}
-	c.WriteJson(http.StatusOK, data)
+	if err = c.WriteJson(http.StatusOK, data); err != nil {
+		panic(err)
+	}
 }
 
 func hello(c *Context) {
-	fmt.Fprintf(c.W, "hello\n")
+	if _, err := fmt.Fprintf(c.W, "hello\n"); err != nil {
+		panic(err)
+	}
 }
 
 func headers(c *Context) {
 	for name, headers := range c.R.Header {
 		for _, h := range headers {
-			fmt.Fprintf(c.W, "%v: %v\n", name, h)
+			if _, err := fmt.Fprintf(c.W, "%v: %v\n", name, h); err != nil {
+				panic(err)
+			}
 		}
 	}
 }
 
 func main() {
 	server := NewHttpServer("server")
-	server.Route("/hello", hello)
-	server.Route("/headers", headers)
-	server.Route("/body", body)
-	server.Start(":8080")
+	server.Route(http.MethodGet, "/hello", hello)
+	server.Route(http.MethodGet, "/headers", headers)
+	server.Route(http.MethodPost, "/body", body)
+	err := server.Start(":8080")
+	if err != nil {
+		panic(err)
+	}
 }
