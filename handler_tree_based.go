@@ -21,7 +21,7 @@ func (h *HandlerTreeBased) Route(method, pattern string, handleFunc handleFunc) 
 	cur := h.root
 	for _, path := range paths {
 		child, ok := cur.findChild(path)
-		if !ok {
+		if !ok || (child.path == "*" && path != "*") {
 			child = newNode(path)
 			cur.children = append(cur.children, child)
 		}
@@ -73,12 +73,16 @@ func NewHandlerTreeBased() Handler {
 }
 
 func (n *node) findChild(path string) (*node, bool) {
+	var wildcardNode *node
 	for _, child := range n.children {
-		if child.path == path {
+		if child.path == path && child.path != "*" {
 			return child, true
 		}
+		if child.path == "*" {
+			wildcardNode = child
+		}
 	}
-	return nil, false
+	return wildcardNode, wildcardNode != nil
 }
 
 var _ Handler = &HandlerTreeBased{}
