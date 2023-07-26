@@ -11,6 +11,13 @@ type Context struct {
 	R *http.Request
 }
 
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	return &Context{
+		W: w,
+		R: r,
+	}
+}
+
 func (c *Context) ReadJson(data interface{}) error {
 	body, err := io.ReadAll(c.R.Body)
 	if err != nil {

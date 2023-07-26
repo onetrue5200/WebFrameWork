@@ -10,11 +10,7 @@ type Req struct {
 	B string `json:"b"`
 }
 
-func body(w http.ResponseWriter, r *http.Request) {
-	c := Context{
-		W: w,
-		R: r,
-	}
+func body(c *Context) {
 	data := &Req{}
 	err := c.ReadJson(data)
 	if err != nil {
@@ -23,16 +19,14 @@ func body(w http.ResponseWriter, r *http.Request) {
 	c.WriteJson(http.StatusOK, data)
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Fprintf(w, "hello\n")
+func hello(c *Context) {
+	fmt.Fprintf(c.W, "hello\n")
 }
 
-func headers(w http.ResponseWriter, r *http.Request) {
-
-	for name, headers := range r.Header {
+func headers(c *Context) {
+	for name, headers := range c.R.Header {
 		for _, h := range headers {
-			fmt.Fprintf(w, "%v: %v\n", name, h)
+			fmt.Fprintf(c.W, "%v: %v\n", name, h)
 		}
 	}
 }
