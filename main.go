@@ -40,7 +40,7 @@ func headers(c *Context) {
 }
 
 func main() {
-	server := NewHttpServer("server")
+	server := NewHttpServer("server", MetricsFilterBuilder)
 	server.Route(http.MethodGet, "/hello", hello)
 	server.Route(http.MethodGet, "/headers", headers)
 	server.Route(http.MethodPost, "/body", body)

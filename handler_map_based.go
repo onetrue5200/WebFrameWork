@@ -8,7 +8,7 @@ type Routable interface {
 
 type Handler interface {
 	Routable
-	http.Handler
+	ServeHTTP(c *Context)
 }
 
 type HandlerMapBased struct {
@@ -16,23 +16,23 @@ type HandlerMapBased struct {
 }
 
 func (h *HandlerMapBased) Route(method, pattern string, handleFunc func(c *Context)) {
-	key := getKey(method, pattern)
+	key := h.getKey(method, pattern)
 	h.routers[key] = handleFunc
 }
 
-func (h *HandlerMapBased) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	key := getKey(request.Method, request.URL.Path)
+func (h *HandlerMapBased) ServeHTTP(c *Context) {
+	key := h.getKey(c.R.Method, c.R.URL.Path)
 	if handler, ok := h.routers[key]; ok {
-		handler(NewContext(writer, request))
+		handler(c)
 	} else {
-		writer.WriteHeader(http.StatusNotFound)
-		if _, err := writer.Write([]byte("Page Not Found")); err != nil {
+		c.W.WriteHeader(http.StatusNotFound)
+		if _, err := c.W.Write([]byte("Page Not Found")); err != nil {
 			panic(err)
 		}
 	}
 }
 
-func getKey(method, pattern string) string {
+func (h *HandlerMapBased) getKey(method, pattern string) string {
 	return method + "#" + pattern
 }
 
