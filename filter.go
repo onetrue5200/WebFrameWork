@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+type handleFunc func(c *Context)
+
 type Filter func(c *Context)
 
 type FilterBuilder func(next Filter) Filter
@@ -14,6 +16,6 @@ func MetricsFilterBuilder(next Filter) Filter {
 		start := time.Now().Nanosecond()
 		next(c)
 		end := time.Now().Nanosecond()
-		fmt.Printf("spend %d nanosecond", end-start)
+		fmt.Printf("spend %d nanosecond\n", end-start)
 	}
 }

@@ -13,7 +13,7 @@ type sdkHttpServer struct {
 	root    Filter
 }
 
-func (s *sdkHttpServer) Route(method, pattern string, handleFunc func(c *Context)) {
+func (s *sdkHttpServer) Route(method, pattern string, handleFunc handleFunc) {
 	s.handler.Route(method, pattern, handleFunc)
 }
 
@@ -26,7 +26,7 @@ func (s *sdkHttpServer) Start(address string) error {
 }
 
 func NewHttpServer(name string, builders ...FilterBuilder) Server {
-	handler := NewHandlerMapBased()
+	handler := NewHandlerTreeBased()
 	root := handler.ServeHTTP
 	for i := len(builders) - 1; i >= 0; i-- {
 		b := builders[i]
