@@ -1,14 +1,17 @@
 package wfw
 
 import (
+	"html/template"
 	"net/http"
 	"strings"
 )
 
 type Engine struct {
 	*RouteGroup
-	router *router
-	groups []*RouteGroup
+	router        *router
+	groups        []*RouteGroup
+	htmlTemplates *template.Template
+	funcMap       template.FuncMap
 }
 
 func New() *Engine {
@@ -41,9 +44,18 @@ func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	}
 	c := newContext(writer, request)
 	c.handlers = middlewares
+	c.enginer = e
 	e.router.handle(c)
 }
 
 func (e *Engine) Run(addr string) (err error) {
 	return http.ListenAndServe(addr, e)
+}
+
+func (e *Engine) SetFuncMap(funcMap template.FuncMap) {
+	e.funcMap = funcMap
+}
+
+func (e *Engine) LoadHTMLGlob(pattern string) {
+	e.htmlTemplates = template.Must(template.New("").Funcs(e.funcMap).ParseGlob(pattern))
 }
