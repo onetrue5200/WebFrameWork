@@ -2,6 +2,7 @@ package wfw
 
 import (
 	"net/http"
+	"strings"
 )
 
 type Engine struct {
@@ -32,7 +33,14 @@ func (e *Engine) POST(pattern string, handler HandlerFunc) {
 }
 
 func (e *Engine) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	var middlewares []HandlerFunc
+	for _, group := range e.groups {
+		if strings.HasPrefix(request.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
 	c := newContext(writer, request)
+	c.handlers = middlewares
 	e.router.handle(c)
 }
 

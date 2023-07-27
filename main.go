@@ -3,38 +3,32 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 	"wfw"
 )
+
+func onlyForV2() wfw.HandlerFunc {
+	return func(c *wfw.Context) {
+		t := time.Now()
+		c.Fail(500, "Internal Server Error")
+		log.Printf("[%d] %s in %v for group v2", c.StatusCode, c.Request.RequestURI, time.Since(t))
+	}
+}
 
 func main() {
 	r := wfw.New()
 
+	r.Use(wfw.Logger())
 	r.GET("/", func(c *wfw.Context) {
-		c.HTML(http.StatusOK, "<h1>Hello World</h1>")
+		c.HTML(http.StatusOK, "<h1>Hello Gee</h1>")
 	})
 
-	v1 := r.Group("/v1")
-	{
-		v1.GET("/", func(c *wfw.Context) {
-			c.HTML(http.StatusOK, "<h1>Hello V1</h1>")
-		})
-		v1.GET("/hello", func(c *wfw.Context) {
-			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
-		})
-	}
-
 	v2 := r.Group("/v2")
+	v2.Use(onlyForV2())
 	{
 		v2.GET("/hello/:name", func(c *wfw.Context) {
 			c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
 		})
-		v2.POST("/login", func(c *wfw.Context) {
-			c.JSON(http.StatusOK, wfw.H{
-				"username": c.PostForm("username"),
-				"password": c.PostForm("password"),
-			})
-		})
-
 	}
 
 	log.Fatal(r.Run(":9999"))
