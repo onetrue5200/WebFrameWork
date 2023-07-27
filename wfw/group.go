@@ -1,6 +1,9 @@
 package wfw
 
-import "net/http"
+import (
+	"net/http"
+	"path"
+)
 
 type RouteGroup struct {
 	prefix      string
@@ -35,4 +38,23 @@ func (group *RouteGroup) GET(pattern string, handler HandlerFunc) {
 
 func (group *RouteGroup) POST(pattern string, handler HandlerFunc) {
 	group.addRoute(http.MethodPost, pattern, handler)
+}
+
+func (group *RouteGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+		} else {
+			fileServer.ServeHTTP(c.Writer, c.Request)
+		}
+	}
+}
+
+func (group *RouteGroup) Static(relativePath, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	group.GET(urlPattern, handler)
 }
